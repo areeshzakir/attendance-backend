@@ -1,11 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const { google } = require('googleapis');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// This is the path to your downloaded JSON key
+// Parse credentials from environment variable
+const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+
 const auth = new google.auth.GoogleAuth({
-  keyFile: '/Users/classplus/Desktop/My Projects/attendance-backend/plutus-458212-0440289864bf.json',
+  credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
@@ -13,8 +16,8 @@ app.get('/data', async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: '1BBgF0Gtn1SrIx_UxaWThaTWwVSB8UGt939X-tZwEdkw', // Replace with your sheet ID
-      range: 'export_for_dash!A1:D3',         // Replace with your desired range
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE,
     });
     res.json(response.data.values);
   } catch (err) {
