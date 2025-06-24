@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/areeshzakir/attendance-backend#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "googleapis": "^150.0.1"

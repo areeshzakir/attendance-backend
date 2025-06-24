@@ -1,8 +1,11 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const { google } = require('googleapis');
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(cors());
 
 // Parse credentials from environment variable
 const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
