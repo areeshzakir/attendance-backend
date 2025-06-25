@@ -15,18 +15,50 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-app.get('/data', async (req, res) => {
+app.get('/api/kpis', async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: process.env.GOOGLE_SHEET_RANGE,
+      range: process.env.GOOGLE_SHEET_RANGE_KPIS,
     });
     res.json(response.data.values);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error fetching data');
+    res.status(500).send('Error fetching KPI data');
   }
+});
+
+app.get('/api/batch-attendance', async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_BATCH_ATTENDANCE,
+    });
+    res.json(response.data.values);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching batch attendance data');
+  }
+});
+
+app.get('/api/absentees', async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_ABSENTEES,
+    });
+    res.json(response.data.values);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching absentees data');
+  }
+});
+
+app.get('/', (req, res) => {
+  res.send('Attendance Backend is running. Use /api/kpis, /api/batch-attendance, or /api/absentees.');
 });
 
 app.listen(port, () => {
