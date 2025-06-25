@@ -1,45 +1,69 @@
+# Pending Tasks
+
+- [ ] Set up and verify the new environment variables for each endpoint:
+  - `GOOGLE_SHEET_RANGE_KPIS`
+  - `GOOGLE_SHEET_RANGE_BATCH_ATTENDANCE`
+  - `GOOGLE_SHEET_RANGE_ABSENTEES`
+
+---
+
 # Backend & Frontend Integration Task List
 
-## 1. Google Sheets API Setup (Already Done)
+## 1. Google Sheets API & Service Account Setup
 - [x] Enable Google Sheets API in Google Cloud Console
 - [x] Create a service account and download the JSON key
 - [x] Share your Google Sheet with the service account email (Editor access)
 
-## 2. Backend Development
-- [x] Create a new project directory (e.g., `sheets-backend`)
+## 2. Backend Project Initialization
+- [x] Create a new project directory
 - [x] Initialize Node.js project with `npm init -y`
-- [x] Install dependencies: `express` and `googleapis`
+- [x] Install dependencies: `express`, `googleapis`, `dotenv`, `cors`
+
+## 3. Backend Core Development
 - [x] Create `server.js` with:
-  - [x] Google Sheets authentication using your JSON key
-  - [x] API endpoint (e.g., `/data`) to fetch data from your sheet
-- [ ] (Optional) Add more endpoints for updating/inserting data if needed
-- [ ] Add your JSON key file to `.gitignore` to avoid committing secrets
-- [ ] Use environment variables for sensitive paths/IDs if deploying to production
+  - [x] Google Sheets authentication using your JSON key (now via env variable)
+  - [x] Use environment variables for sensitive paths/IDs
+  - [x] Add CORS support
+  - [x] Add a root route for health/status
+- [x] Add dedicated endpoints for each data type:
+  - [x] `/api/kpis`
+  - [x] `/api/batch-attendance`
+  - [x] `/api/absentees`
+- [x] Use separate environment variables for each endpoint's range
 
-## 3. Local Testing
+## 4. Security & Clean Code
+- [x] Add your JSON key file to `.gitignore` to avoid committing secrets
+- [x] Remove any secrets from git history
+- [x] Use environment variables for all secrets and IDs
+
+## 5. Local Testing
 - [x] Start the server: `node server.js`
-- [x] Test the endpoint in your browser or with `curl`/Postman: `http://localhost:3000/data`
-- [ ] Confirm you see your sheet data in JSON format
+- [x] Test each endpoint in your browser or with `curl`/Postman
+- [x] Confirm you see your sheet data in JSON format
 
-## 4. Frontend Integration
-- [x] In your Bolt frontend, use `fetch('http://localhost:3000/data')` to get data
-- [ ] Display the data in your dashboard as needed
-- [ ] Confirm the frontend displays live data from your Google Sheet
+## 6. Deployment
+- [x] Choose a deployment platform (Render)
+- [x] Push code to GitHub
+- [x] Set up environment variables in Render
+- [x] Deploy your backend to Render
+- [x] Update the frontend fetch URL to your deployed backend's URL
+- [x] Visit your deployed backend's endpoints to confirm they work
 
-## 5. Deployment
-- [ ] Choose a deployment platform (Vercel, Render, Google Cloud, etc.)
-- [ ] Update your backend code to use environment variables for secrets and IDs
-- [ ] Ensure your JSON key is securely provided to the deployment environment
-- [ ] Deploy your backend to your chosen platform
-- [ ] Update the frontend fetch URL to your deployed backend's URL
-- [ ] Visit your deployed backend's `/data` endpoint to confirm it works
-- [ ] Confirm your frontend fetches and displays data from the deployed backend
+## 7. Frontend Integration
+- [x] In your Bolt frontend, use the correct fetch URLs for each endpoint
+- [x] Display the data in your dashboard as needed
+- [x] Confirm the frontend displays live data from your Google Sheet
 
-## 6. (Optional) Enhancements
+## 8. (Optional) Enhancements
 - [ ] Add more API endpoints (e.g., for updating or deleting sheet data)
 - [ ] Add error handling and logging
-- [ ] Add CORS support if your frontend and backend are on different domains
 - [ ] Write unit/integration tests for your backend
+
+---
+
+**Notes:**
+- All core backend and integration steps are complete except for setting up the new environment variables for the new endpoints.
+- Optional enhancements remain for future improvements.
 
 ---
 
