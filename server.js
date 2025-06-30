@@ -154,6 +154,57 @@ app.get('/api/attendance-heatmap', async (req, res) => {
   }
 });
 
+app.get('/api/students', async (req, res) => {
+  try {
+    const { name, number } = req.query; // For search/filter
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_STUDENTS,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) {
+      return res.json([]);
+    }
+    const header = rows[0];
+    const idx = {
+      studentName: header.indexOf('Student Name'),
+      batchName: header.indexOf('Batch 1'),
+      studentContact: header.indexOf('Student Contact'),
+      attended: header.indexOf('Attended'),
+      classes: header.indexOf('Classes'),
+      percent: header.indexOf('Percent')
+    };
+    let data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      data.push({
+        studentName: row[idx.studentName],
+        batchName: row[idx.batchName],
+        studentContact: row[idx.studentContact],
+        attended: row[idx.attended] ? Number(row[idx.attended]) : null,
+        classes: row[idx.classes] ? Number(row[idx.classes]) : null,
+        percent: row[idx.percent] ? Number(row[idx.percent]) : null
+      });
+    }
+    // Apply search/filter if provided
+    if (name) {
+      data = data.filter(s =>
+        s.studentName && s.studentName.toLowerCase().includes(name.toLowerCase())
+      );
+    }
+    if (number) {
+      data = data.filter(s =>
+        s.studentContact && s.studentContact.includes(number)
+      );
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching students data');
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('Attendance Backend is running. Use /api/kpis, /api/batch-attendance, or /api/absentees.');
 });
