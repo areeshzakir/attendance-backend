@@ -156,7 +156,7 @@ app.get('/api/attendance-heatmap', async (req, res) => {
 
 app.get('/api/students', async (req, res) => {
   try {
-    const { name, number } = req.query; // For search/filter
+    const { name, number, batch } = req.query; // For search/filter
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -198,10 +198,43 @@ app.get('/api/students', async (req, res) => {
         s.studentContact && s.studentContact.includes(number)
       );
     }
+    if (batch) {
+      data = data.filter(s =>
+        s.batchName && s.batchName.toLowerCase() === batch.toLowerCase()
+      );
+    }
     res.json(data);
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching students data');
+  }
+});
+
+// Endpoint to get unique list of all batch names
+app.get('/api/batches', async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_STUDENTS,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) {
+      return res.json([]);
+    }
+    const header = rows[0];
+    const batchIdx = header.indexOf('Batch 1');
+    const batchesSet = new Set();
+    for (let i = 1; i < rows.length; i++) {
+      const batchName = rows[i][batchIdx];
+      if (batchName) {
+        batchesSet.add(batchName);
+      }
+    }
+    res.json(Array.from(batchesSet));
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching batch list');
   }
 });
 
