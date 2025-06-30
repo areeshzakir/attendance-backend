@@ -156,7 +156,7 @@ app.get('/api/attendance-heatmap', async (req, res) => {
 
 app.get('/api/students', async (req, res) => {
   try {
-    const { name, number, batch } = req.query; // For search/filter
+    const { query, batch } = req.query; // Unified search/filter
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -187,15 +187,12 @@ app.get('/api/students', async (req, res) => {
         percent: row[idx.percent] ? Number(row[idx.percent]) : null
       });
     }
-    // Apply search/filter if provided
-    if (name) {
+    // Apply unified search/filter if provided
+    if (query) {
+      const q = query.toLowerCase();
       data = data.filter(s =>
-        s.studentName && s.studentName.toLowerCase().includes(name.toLowerCase())
-      );
-    }
-    if (number) {
-      data = data.filter(s =>
-        s.studentContact && s.studentContact.includes(number)
+        (s.studentName && s.studentName.toLowerCase().includes(q)) ||
+        (s.studentContact && s.studentContact.toLowerCase().includes(q))
       );
     }
     if (batch) {
