@@ -235,6 +235,42 @@ app.get('/api/batches', async (req, res) => {
   }
 });
 
+// Endpoint to get batch info for batches tab
+app.get('/api/batches-info', async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_BATCHES_INFO,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) {
+      return res.json([]);
+    }
+    const header = rows[0];
+    const idx = {
+      batch: header.indexOf('Batch'),
+      attended: header.indexOf('Attended'),
+      total: header.indexOf('Total'),
+      percent: header.indexOf('Percent')
+    };
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      data.push({
+        batch: row[idx.batch],
+        attended: row[idx.attended] ? Number(row[idx.attended]) : null,
+        total: row[idx.total] ? Number(row[idx.total]) : null,
+        percent: row[idx.percent] ? Number(row[idx.percent]) : null
+      });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching batches info');
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('Attendance Backend is running. Use /api/kpis, /api/batch-attendance, or /api/absentees.');
 });
