@@ -271,6 +271,42 @@ app.get('/api/batches-info', async (req, res) => {
   }
 });
 
+// Endpoint to get MTD attendance credits info for batches tab
+app.get('/api/batch-credits-info', async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_BATCH_CREDITS,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) {
+      return res.json([]);
+    }
+    const header = rows[0];
+    const idx = {
+      batch: header.indexOf('Batch'),
+      attendedCredits: header.indexOf('Attended Credits'),
+      totalCredits: header.indexOf('Total Credits'),
+      percent: header.indexOf('Percent')
+    };
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      data.push({
+        batch: row[idx.batch],
+        attendedCredits: row[idx.attendedCredits] ? Number(row[idx.attendedCredits]) : null,
+        totalCredits: row[idx.totalCredits] ? Number(row[idx.totalCredits]) : null,
+        percent: row[idx.percent] ? Number(row[idx.percent]) : null
+      });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching batch credits info');
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('Attendance Backend is running. Use /api/kpis, /api/batch-attendance, or /api/absentees.');
 });
