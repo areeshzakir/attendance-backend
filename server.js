@@ -171,6 +171,7 @@ app.get('/api/students', async (req, res) => {
       studentName: header.indexOf('Student Name'),
       batchName: header.indexOf('Batch 1'),
       studentContact: header.indexOf('Student Contact'),
+      sid: header.indexOf('Sid'),
       attended: header.indexOf('Attended'),
       classes: header.indexOf('Classes'),
       percent: header.indexOf('Percent')
@@ -182,6 +183,7 @@ app.get('/api/students', async (req, res) => {
         studentName: row[idx.studentName],
         batchName: row[idx.batchName],
         studentContact: row[idx.studentContact],
+        sid: row[idx.sid],
         attended: row[idx.attended] ? Number(row[idx.attended]) : null,
         classes: row[idx.classes] ? Number(row[idx.classes]) : null,
         percent: row[idx.percent] ? Number(row[idx.percent]) : null
