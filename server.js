@@ -189,17 +189,17 @@ app.get('/api/students', async (req, res) => {
         percent: row[idx.percent] ? Number(row[idx.percent]) : null
       });
     }
+    function normalize(str) {
+      return str ? str.trim().replace(/\s+/g, ' ').toLowerCase() : '';
+    }
     // Apply unified search/filter if provided
     if (query) {
-      const q = query.toLowerCase();
-      console.log('Search Query (lowercase):', q); // Debug log
-      data = data.filter(s =>{
-        const matchesName = s.studentName && s.studentName.toLowerCase().includes(q);
-        const matchesContact = s.studentContact && s.studentContact.toLowerCase().includes(q);
-        console.log(`Student: ${s.studentName || 'N/A'}, Contact: ${s.studentContact || 'N/A'} - Name Match: ${matchesName}, Contact Match: ${matchesContact}`); // Debug log
-        return matchesName || matchesContact;
-      }
-      );
+      const q = normalize(query);
+      data = data.filter(s => {
+        const nameNorm = normalize(s.studentName);
+        const contactNorm = normalize(s.studentContact);
+        return nameNorm.includes(q) || contactNorm.includes(q);
+      });
     }
     if (batch) {
       data = data.filter(s =>
