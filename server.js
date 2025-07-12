@@ -192,9 +192,13 @@ app.get('/api/students', async (req, res) => {
     // Apply unified search/filter if provided
     if (query) {
       const q = query.toLowerCase();
-      data = data.filter(s =>
-        (s.studentName && s.studentName.toLowerCase().includes(q)) ||
-        (s.studentContact && s.studentContact.toLowerCase().includes(q))
+      console.log('Search Query (lowercase):', q); // Debug log
+      data = data.filter(s =>{
+        const matchesName = s.studentName && s.studentName.toLowerCase().includes(q);
+        const matchesContact = s.studentContact && s.studentContact.toLowerCase().includes(q);
+        console.log(`Student: ${s.studentName || 'N/A'}, Contact: ${s.studentContact || 'N/A'} - Name Match: ${matchesName}, Contact Match: ${matchesContact}`); // Debug log
+        return matchesName || matchesContact;
+      }
       );
     }
     if (batch) {
