@@ -2,10 +2,45 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
+const bcrypt = require('bcrypt');
+const fs = require('fs');
+const crypto = require('crypto');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// In-memory user store (load from users.json)
+let users = [];
+try {
+  const usersData = fs.readFileSync('users.json', 'utf8');
+  console.log('Raw usersData:', usersData);
+  users = JSON.parse(usersData);
+  console.log('Users loaded from users.json');
+} catch (error) {
+  console.error('Error loading users.json, starting with empty user list:', error.message);
+  // Optional: create an empty users.json if it doesn't exist
+  // fs.writeFileSync('users.json', '[]', 'utf8');
+}
+
+// In-memory active sessions store
+const activeSessions = {}; // { token: username }
+
 app.use(cors());
+app.use(express.json()); // To parse JSON request bodies
+
+// Middleware to authenticate token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['x-auth-token'];
+  const token = authHeader && authHeader;
+
+  if (token == null) return res.status(401).send('Access Denied: No Token Provided');
+
+  const username = activeSessions[token];
+  if (!username) {
+    return res.status(403).send('Access Denied: Invalid Token');
+  }
+  req.user = { username: username };
+  next();
+}
 
 // Parse credentials from environment variable
 const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
@@ -15,7 +50,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-app.get('/api/kpis', async (req, res) => {
+app.get('/api/kpis', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -47,7 +82,7 @@ app.get('/api/kpis', async (req, res) => {
   }
 });
 
-app.get('/api/batch-attendance', async (req, res) => {
+app.get('/api/batch-attendance', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -76,7 +111,7 @@ app.get('/api/batch-attendance', async (req, res) => {
   }
 });
 
-app.get('/api/absentees', async (req, res) => {
+app.get('/api/absentees', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -116,7 +151,7 @@ app.get('/api/absentees', async (req, res) => {
   }
 });
 
-app.get('/api/attendance-heatmap', async (req, res) => {
+app.get('/api/attendance-heatmap', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -154,7 +189,7 @@ app.get('/api/attendance-heatmap', async (req, res) => {
   }
 });
 
-app.get('/api/students', async (req, res) => {
+app.get('/api/students', authenticateToken, async (req, res) => {
   try {
     const { query, batch } = req.query; // Unified search/filter
     const sheets = google.sheets({ version: 'v4', auth });
@@ -214,7 +249,7 @@ app.get('/api/students', async (req, res) => {
 });
 
 // Endpoint to get unique list of all batch names
-app.get('/api/batches', async (req, res) => {
+app.get('/api/batches', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -242,7 +277,7 @@ app.get('/api/batches', async (req, res) => {
 });
 
 // Endpoint to get batch info for batches tab
-app.get('/api/batches-info', async (req, res) => {
+app.get('/api/batches-info', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -278,7 +313,7 @@ app.get('/api/batches-info', async (req, res) => {
 });
 
 // Endpoint to get MTD attendance credits info for batches tab
-app.get('/api/batch-credits-info', async (req, res) => {
+app.get('/api/batch-credits-info', authenticateToken, async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
@@ -313,8 +348,43 @@ app.get('/api/batch-credits-info', async (req, res) => {
   }
 });
 
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    return res.status(401).send('Invalid username or password');
+  }
+
+  try {
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (isMatch) {
+      const token = crypto.randomBytes(32).toString('hex'); // Generate a random token
+      activeSessions[token] = username;
+      console.log(`User ${username} logged in. Token: ${token}`);
+      res.json({ token });
+    } else {
+      res.status(401).send('Invalid username or password');
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).send('Server error during login');
+  }
+});
+
+app.post('/api/logout', authenticateToken, (req, res) => {
+  const token = req.headers['x-auth-token'];
+  if (activeSessions[token]) {
+    delete activeSessions[token];
+    console.log(`User ${req.user.username} logged out.`);
+    res.status(200).send('Logged out successfully');
+  } else {
+    res.status(400).send('No active session found for this token');
+  }
+});
+
 app.get('/', (req, res) => {
-  res.send('Attendance Backend is running. Use /api/kpis, /api/batch-attendance, or /api/absentees.');
+  res.send('Attendance Backend is running. Use /api/login, /api/kpis, /api/batch-attendance, or /api/absentees.');
 });
 
 app.listen(port, () => {
