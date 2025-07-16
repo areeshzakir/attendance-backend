@@ -1,3 +1,4 @@
 [
-    { "username": "admin", "passwordHash": "$2b$10$00GmwHQiLFIT9oMiLmFjLeKHEWsg84U980Ikiak75uT9FjZN.zzmi" }
-  ]
+  { "username": "admin", "passwordHash": "$2b$10$00GmwHQiLFIT9oMiLmFjLeKHEWsg84U980Ikiak75uT9FjZN.zzmi" },
+  { "username": "himank", "passwordHash": "$2b$10$djNwQ2HvuuZS5GFWYBes/ObyCC1kq8ai1WiyctxendbP7uNAFzI3y" }
+]
