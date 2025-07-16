@@ -1,4 +1,14 @@
 [
-  { "username": "admin", "passwordHash": "$2b$10$00GmwHQiLFIT9oMiLmFjLeKHEWsg84U980Ikiak75uT9FjZN.zzmi" },
-  { "username": "himank", "passwordHash": "$2b$10$djNwQ2HvuuZS5GFWYBes/ObyCC1kq8ai1WiyctxendbP7uNAFzI3y" }
+  {
+    "username": "admin",
+    "passwordHash": "$2b$10$00GmwHQiLFIT9oMiLmFjLeKHEWsg84U980Ikiak75uT9FjZN.zzmi"
+  },
+  {
+    "username": "himank",
+    "passwordHash": "$2b$10$djNwQ2HvuuZS5GFWYBes/ObyCC1kq8ai1WiyctxendbP7uNAFzI3y"
+  },
+  {
+    "username": "registration@plutuseducation.com",
+    "passwordHash": "$2b$10$PQTH65W1Z9bE2RbOW.IgFe4R9bYA.x0uFpo1pYK9Sg.SM59gjGN7W"
+  }
 ]
