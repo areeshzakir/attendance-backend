@@ -12,7 +12,6 @@ const port = process.env.PORT || 3000;
 let users = [];
 try {
   const usersData = fs.readFileSync('users.json', 'utf8');
-  console.log('Raw usersData:', usersData);
   users = JSON.parse(usersData);
   console.log('Users loaded from users.json');
 } catch (error) {
@@ -347,6 +346,51 @@ app.get('/api/batch-credits-info', authenticateToken, async (req, res) => {
     res.status(500).send('Error fetching batch credits info');
   }
 });
+
+app.get('/api/SSM-performance', authenticateToken, async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: process.env.GOOGLE_SHEET_RANGE_SSM_PERFORMANCE,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length < 2) {
+      return res.json([]);
+    }
+    const header = rows[0];
+    const idx = {
+      id: header.indexOf('Id'),
+      ssm: header.indexOf('SSM'),
+      emiCollected: header.indexOf('emiCollected'),
+      emiTarget: header.indexOf('emiTarget'),
+      referralRevenue: header.indexOf('referralRevenue'),
+      referralTarget: header.indexOf('referralTarget'),
+      loanConversions: header.indexOf('loanConversions'),
+      loanTarget: header.indexOf('loanTarget'),
+    };
+
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      data.push({
+        managerId: row[idx.id],
+        managerName: row[idx.ssm],
+        emiCollected: row[idx.emiCollected] ? Number(row[idx.emiCollected]) : null,
+        emiTarget: row[idx.emiTarget] ? Number(row[idx.emiTarget]) : null,
+        referralRevenue: row[idx.referralRevenue] ? Number(row[idx.referralRevenue]) : null,
+        referralTarget: row[idx.referralTarget] ? Number(row[idx.referralTarget]) : null,
+        loanConversions: row[idx.loanConversions] ? Number(row[idx.loanConversions]) : null,
+        loanTarget: row[idx.loanTarget] ? Number(row[idx.loanTarget]) : null,
+      });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching SSM performance data');
+  }
+});
+
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
